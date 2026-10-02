@@ -2,7 +2,7 @@
 The purpose of this project is to test and configure a Streaming Deck built with 10 buttons and 5 knobs.
 
 ## Test of Buttons and Knobs
-### File: Test_Arduino_StreamingDeck
+### File: test_file
 This file is test only for streaming deck buttons and knobs using the Arduino IDE to ensure connections have been made properly.
 It is not required for your project.
 
