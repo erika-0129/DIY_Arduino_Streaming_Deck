@@ -26,6 +26,9 @@ In this project, the top 5 buttons have the following functions:
 4. Open Discord
 5. Open Streamlabs
 
+### Executable Requirement
+Download [AutoHotKey](https://github.com/AutoHotkey/AutoHotkey/releases) v2 to work with your macropad file.
+
 ### File: macropad.ahk
 This file will have the code necessary to run the 5 buttons above using your computer's systems. 
 It can be built using Notepad and it will run as an executable later.
