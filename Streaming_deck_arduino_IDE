@@ -1,0 +1,105 @@
+/*
+  Code for Arduino pro micro. Used to set up 10 buttons and 5 knobs in conjunction with Deej and AutoHotKey
+*/
+
+#include <Keyboard.h>
+
+// --- KNOB CONFIGURATION (deej) ---
+const int numKnobs = 5;
+const int knobPins[numKnobs] = {A10, A3, A2, A1, A0}; //Accidentally connected the knobs in the wrong order :)
+int knobValues[numKnobs];
+
+// Timing variable to slow down Serial printing for testing knobs
+unsigned long lastKnobPrintTime = 0;
+const unsigned long knobPrintInterval = 250; // Prints knob data every 250ms
+
+// --- BUTTON CONFIGURATION ---
+const int numButtons = 10;
+const int buttonPins[numButtons] = {2, 4, 6, 8, 15, 3, 5, 7, 9, 16}; //Also connected buttons in wrong order.
+
+bool lastButtonState[numButtons] = {HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH};
+
+// Timing variable to slow down Serial printing for testing buttons
+unsigned long lastDebounceTime[numButtons] = {0};
+const unsigned long debounceDelay = 30;
+
+void setup() {
+  Serial.begin(9600);
+  Keyboard.begin();
+
+  for (int i = 0; i < numButtons; i++) {
+    pinMode(buttonPins[i], INPUT_PULLUP);
+  }
+}
+
+void loop() {
+  // Only send knob updates 4 times per second to keep Serial readable
+  if (millis() - lastKnobPrintTime >= knobPrintInterval) {
+    readAndSendKnobs();
+    lastKnobPrintTime = millis();
+  }
+
+  // Check buttons instantly on every loop pass
+  checkButtons();
+}
+
+void readAndSendKnobs() {
+  String builtString = "";
+  for (int i = 0; i < numKnobs; i++) {
+    int val1 = analogRead(knobPins[i]);
+    int val2 = analogRead(knobPins[i]);
+    knobValues[i] = (val1 + val2) / 2;
+
+    builtString += String(knobValues[i]);
+    if (i < numKnobs - 1) {
+      builtString += "|";
+    }
+  }
+  Serial.println(builtString);
+}
+
+void checkButtons() {
+  for (int i = 0; i < numButtons; i++) {
+    bool reading = digitalRead(buttonPins[i]);
+
+    if (reading != lastButtonState[i]) {
+      if ((millis() - lastDebounceTime[i]) > debounceDelay) {
+        lastDebounceTime[i] = millis();
+        
+        if (reading == LOW) {
+          // Prominent visual marker for testing in Serial Monitor
+          Serial.print(">>> BUTTON PRESSED ON PIN: ");
+          Serial.println(buttonPins[i]);
+
+          triggerHotkey(buttonPins[i]);
+        }
+        lastButtonState[i] = reading;
+      }
+    }
+  }
+}
+
+void triggerHotkey(int pin) {
+  switch(pin) {
+    case 2:  sendCombo(KEY_F13); break;
+    case 4:  sendCombo(KEY_F14); break;
+    case 6:  sendCombo(KEY_F15); break;
+    case 8:  sendCombo(KEY_F16); break;
+    case 15: sendCombo(KEY_F17); break;
+    case 3:  sendCombo(KEY_F18); break;
+    case 5:  sendCombo(KEY_F19); break;
+    case 7:  sendCombo(KEY_F20); break;
+    case 9:  sendCombo(KEY_F21); break;
+    case 16: sendCombo(KEY_F22); break;
+  }
+}
+
+void sendCombo(uint8_t key) {
+  Keyboard.press(KEY_LEFT_CTRL);
+  Keyboard.press(KEY_LEFT_SHIFT);
+  Keyboard.press(KEY_LEFT_ALT);
+  Keyboard.press(key);
+  delay(50);
+  Keyboard.releaseAll();
+  delay(100);
+}
